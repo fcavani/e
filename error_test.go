@@ -27,20 +27,20 @@ func TestNew(t *testing.T) {
 	if str.String() != STRERROR {
 		t.Fatal("Invalid error:", str.String())
 	}
-	if dummy.Error() != "projects/e.TestNew - e/error_test.go - 20: dummy error" {
+	if dummy.Error() != "github.com/fcavani/e.TestNew - e/error_test.go - 22: dummy error" {
 		t.Fatal("Wrong debug info:", dummy.Error())
 	}
 }
 
-const trace = `projects/e.TestPush - e/error_test.go - 49: still a error
-projects/e.TestPush - e/error_test.go - 48: another error
-projects/e.TestPush - e/error_test.go - 47: silly error
-projects/e.TestPush - e/error_test.go - 46: string error
-projects/e.TestPush - e/error_test.go - 45: dummy error
+const trace = `github.com/fcavani/e.TestPush - e/error_test.go - 51: still a error
+github.com/fcavani/e.TestPush - e/error_test.go - 50: another error
+github.com/fcavani/e.TestPush - e/error_test.go - 49: silly error
+github.com/fcavani/e.TestPush - e/error_test.go - 48: string error
+github.com/fcavani/e.TestPush - e/error_test.go - 47: dummy error
 `
 
-const tracep1 = `projects/e.TestPush - e/error_test.go - 62: string error
-projects/e.TestPush - e/error_test.go - 45: dummy error
+const tracep1 = `github.com/fcavani/e.TestPush - e/error_test.go - 59: string error
+github.com/fcavani/e.TestPush - e/error_test.go - 47: dummy error
 `
 
 func TestPush(t *testing.T) {
@@ -56,29 +56,24 @@ func TestPush(t *testing.T) {
 	if n != nil {
 		t.Fatal("Not nil.")
 	}
-	e := new(Error)
-	n = still.Push(e)
-	if n != nil {
-		t.Fatal("Not nil. (2)")
-	}
 	p1 := Push(dummy, STRERROR)
 	if Trace(p1) != tracep1 {
 		t.Fatal("Wrong trace:\n", Trace(p1))
 	}
 }
 
-const trace2 = `projects/e.TestForward - e/error_test.go - 85: dummy error
-projects/e.TestForward - e/error_test.go - 84: dummy error
-projects/e.TestForward - e/error_test.go - 83: dummy error
+const trace2 = `github.com/fcavani/e.TestForward - e/error_test.go - 82: dummy error
+github.com/fcavani/e.TestForward - e/error_test.go - 81: dummy error
+github.com/fcavani/e.TestForward - e/error_test.go - 80: dummy error
 `
-const trace3 = `projects/e.TestForward - e/error_test.go - 99: another error
-projects/e.TestForward - e/error_test.go - 98: another error
-`
-
-const trace4 = `projects/e.TestForward - e/error_test.go - 103: silly error
+const trace3 = `github.com/fcavani/e.TestForward - e/error_test.go - 96: another error
+github.com/fcavani/e.TestForward - e/error_test.go - 95: another error
 `
 
-const trace5 = `projects/e.TestForward - e/error_test.go - 107: string error
+const trace4 = `github.com/fcavani/e.TestForward - e/error_test.go - 100: silly error
+`
+
+const trace5 = `github.com/fcavani/e.TestForward - e/error_test.go - 104: string error
 `
 
 func TestForward(t *testing.T) {
