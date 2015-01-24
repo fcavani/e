@@ -226,6 +226,8 @@ func Equal(l, r interface{}) bool {
 	switch val := l.(type) {
 	case *Error:
 		return val.Equal(r)
+	case error:
+		return newError(val, 2).Equal(r)
 	default:
 		panic("invalid type, must be *Error")
 	}
