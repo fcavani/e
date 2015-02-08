@@ -4,7 +4,7 @@
 // Start date:		2013-05-08
 // Last modification:	2013-
 
-// Helper functions to manipulate errors and trace than.
+// Helper functions to manipulate errors and trace then.
 package e
 
 import (
@@ -58,7 +58,7 @@ func (e *Error) Args() []interface{} {
 	return e.args
 }
 
-// Transform a error message in something readable.
+// Transform an error message in something readable.
 func Phrase(i interface{}) string {
 	msg := ""
 	switch val := i.(type) {
@@ -234,7 +234,7 @@ func Equal(l, r interface{}) bool {
 	return false
 }
 
-// Find a error in the chain. ie must be *Error and r must be
+// Find an error in the chain. ie must be
 // *Error, error or string.
 func (e *Error) Find(ie interface{}) int {
 	if ie == nil {
@@ -250,7 +250,7 @@ func (e *Error) Find(ie interface{}) int {
 	return -1
 }
 
-// Find a error in the chain. e must be *Error and ie must be
+// Find an error in the chain. e must be *Error and ie must be
 // *Error, error or string.
 func Find(e, ie interface{}) int {
 	if e == nil || ie == nil {
@@ -338,10 +338,23 @@ func newError(ie interface{}, level int, a ...interface{}) (err *Error) {
 	return
 }
 
+// New initiates an error from a string, error or *Error. a is
+// the verb in the error string that will be replaced when
+// Error and GoString functions is called. The valids verbs are
+// the same verbs in the fmt package.
 func New(ie interface{}, a ...interface{}) *Error {
 	return newError(ie, 2, a...)
 }
 
+// Contains checks if the error message contains the sub string.
+func (e *Error) Contains(sub string) bool {
+	if e.err == nil {
+		return false
+	}
+	return strings.Contains(e.String(), sub)
+}
+
+// Contains checks if the error message contains the sub string.
 func Contains(ie interface{}, sub string) bool {
 	if ie == nil || sub == "" {
 		return false
@@ -351,10 +364,7 @@ func Contains(ie interface{}, sub string) bool {
 		if val == nil {
 			return false
 		}
-		if val.err == nil {
-			return false
-		}
-		return strings.Contains(val.String(), sub)
+		return val.Contains(sub)
 	case error:
 		if val == nil {
 			return false
@@ -365,5 +375,34 @@ func Contains(ie interface{}, sub string) bool {
 	default:
 		panic("invalid type")
 	}
-	return false
+	panic("don't get here")
+}
+
+// FindStr find a sub string int the chain of error and return
+// the deep of the error.
+func (e *Error) FindStr(sub string) int {
+	deep := 0
+	for err := e; err != nil; err = err.Next() {
+		if err.Contains(sub) {
+			return deep
+		}
+		deep = deep + 1
+	}
+	return -1
+}
+
+func FindStr(ie interface{}, sub string) int {
+	if ie == nil || sub == "" {
+		return -1
+	}
+	switch val := ie.(type) {
+	case *Error:
+		if val == nil {
+			return -1
+		}
+		return val.FindStr(sub)
+	default:
+		panic("invalid type")
+	}
+	panic("don't get here")
 }

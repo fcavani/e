@@ -205,3 +205,38 @@ func TestPharse(t *testing.T) {
 		t.Fatal("Phrase failed")
 	}
 }
+
+func TestContains(t *testing.T) {
+	dummy := New(DUMMYERROR)
+	if !Contains(dummy, "dummy") {
+		t.Fatal("Contains failed")
+	}
+	if !Contains(DUMMYERROR, "dummy") {
+		t.Fatal("Contains failed")
+	}
+	if !Contains("ipsilum iptisum putsun dummy", "dummy") {
+		t.Fatal("Contains failed")
+	}
+}
+
+func TestFindStr(t *testing.T) {
+	err := New(DUMMYERROR).Push(STRERROR).Push(SILLYERROR).Push(ANOTHERERROR).Push(STILLAERROR)
+	if deep := FindStr(err, "dummy"); deep != 4 {
+		t.Fatal("FindStr failed:", deep)
+	}
+	if deep := FindStr(err, "string"); deep != 3 {
+		t.Fatal("FindStr failed:", deep)
+	}
+	if deep := FindStr(err, "silly"); deep != 2 {
+		t.Fatal("FindStr failed:", deep)
+	}
+	if deep := FindStr(err, "another"); deep != 1 {
+		t.Fatal("FindStr failed:", deep)
+	}
+	if deep := FindStr(err, "still"); deep != 0 {
+		t.Fatal("FindStr failed:", deep)
+	}
+	if deep := FindStr(err, "bláblá"); deep != -1 {
+		t.Fatal("FindStr failed:", deep)
+	}
+}
