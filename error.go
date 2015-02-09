@@ -353,7 +353,7 @@ func (e *Error) Contains(sub string) bool {
 	if e.err == nil {
 		return false
 	}
-	return strings.Contains(e.String(), sub)
+	return strings.Contains(e.formatError(), sub)
 }
 
 // Contains checks if the error message contains the sub string.
