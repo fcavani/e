@@ -130,7 +130,7 @@ func (e *Error) Push(ie interface{}) *Error {
 }
 
 // Push e2 error on the top of the stack (e1 error). Free function to use with other
-// types of error beside the *Error. e1 must be *Error
+// types of error beside the *Error. e1 must be *Error or error
 // and e2 must be *Error, error or string.
 func Push(e1, e2 interface{}) error {
 	if e1 == nil {
@@ -142,6 +142,8 @@ func Push(e1, e2 interface{}) error {
 	switch val := e1.(type) {
 	case *Error:
 		return val.push(e2, 3)
+	case error:
+		return newError(val, 2).push(e2, 3)
 	default:
 		panic("invalid type, e1 must be *Error")
 	}
