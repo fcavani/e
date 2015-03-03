@@ -8,12 +8,16 @@
 package e
 
 import (
+	"bytes"
+	"encoding/gob"
 	"errors"
 	"fmt"
 	"runtime"
 	"strconv"
 	"strings"
 	"unicode"
+
+	"github.com/fcavani/util/types"
 )
 
 // Error expand go error type with debug information and error trace.
@@ -27,6 +31,153 @@ type Error struct {
 	line      int
 	debugInfo bool
 	next      *Error
+}
+
+func init() {
+	types.Insert(&Error{})
+}
+
+type GoError string
+
+func (g GoError) Error() string {
+	return string(g)
+}
+
+type messageType uint8
+
+const (
+	NextIsNill messageType = iota
+	Next
+	ErrorGo
+	ErrorLocal
+)
+
+func (e *Error) GobEncode() ([]byte, error) {
+	var err error
+	buf := bytes.NewBuffer([]byte{})
+	enc := gob.NewEncoder(buf)
+	switch v := e.err.(type) {
+	case *Error:
+		err = enc.Encode(ErrorLocal)
+		if err != nil {
+			return nil, err
+		}
+		err = enc.Encode(v)
+		if err != nil {
+			return nil, err
+		}
+	case error:
+		err = enc.Encode(ErrorGo)
+		if err != nil {
+			return nil, err
+		}
+		err = enc.Encode(GoError(v.Error()))
+		if err != nil {
+			return nil, err
+		}
+	default:
+		panic("type not supported")
+	}
+	err = enc.Encode(e.args)
+	if err != nil {
+		return nil, err
+	}
+	err = enc.Encode(e.pkg)
+	if err != nil {
+		return nil, err
+	}
+	err = enc.Encode(e.file)
+	if err != nil {
+		return nil, err
+	}
+	err = enc.Encode(e.line)
+	if err != nil {
+		return nil, err
+	}
+	err = enc.Encode(e.debugInfo)
+	if err != nil {
+		return nil, err
+	}
+	if e.next == nil {
+		err = enc.Encode(NextIsNill)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		err = enc.Encode(Next)
+		if err != nil {
+			return nil, err
+		}
+		err = enc.Encode(e.next)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return buf.Bytes(), nil
+}
+
+func (e *Error) GobDecode(data []byte) error {
+	buf := bytes.NewBuffer(data)
+	dec := gob.NewDecoder(buf)
+	var msg messageType
+	err := dec.Decode(&msg)
+	if err != nil {
+		return err
+	}
+	switch msg {
+	case ErrorLocal:
+		var err_ *Error
+		err := dec.Decode(&err_)
+		if err != nil {
+			return err
+		}
+		e.err = err_
+	case ErrorGo:
+		var err_ GoError
+		err := dec.Decode(&err_)
+		if err != nil {
+			return err
+		}
+		e.err = err_
+	default:
+		return errors.New("protocol error")
+	}
+	err = dec.Decode(&e.args)
+	if err != nil {
+		return err
+	}
+	err = dec.Decode(&e.pkg)
+	if err != nil {
+		return err
+	}
+	err = dec.Decode(&e.file)
+	if err != nil {
+		return err
+	}
+	err = dec.Decode(&e.line)
+	if err != nil {
+		return err
+	}
+	err = dec.Decode(&e.debugInfo)
+	if err != nil {
+		return err
+	}
+	err = dec.Decode(&msg)
+	if err != nil {
+		return err
+	}
+	switch msg {
+	case NextIsNill:
+		return nil
+	case Next:
+		err = dec.Decode(&e.next)
+		if err != nil {
+			return err
+		}
+	default:
+		return errors.New("protocol error")
+	}
+	return nil
 }
 
 func (e *Error) formatError() string {
@@ -54,7 +205,7 @@ func (e *Error) GoString() string {
 	return fmt.Sprintf("%#v", e.formatError())
 }
 
-func (e *Error) Args() []interface{} {
+func (e *Error) Arguments() []interface{} {
 	return e.args
 }
 
@@ -90,16 +241,6 @@ func String(i interface{}) string {
 	return msg
 }
 
-// SetNext erro in the stack of errors.
-func (e *Error) SetNext(err *Error) {
-	e.next = err
-}
-
-// Next error in the stack.
-func (e *Error) Next() *Error {
-	return e.next
-}
-
 func (e *Error) last() *Error {
 	prev := e
 	next := e.next
@@ -120,7 +261,7 @@ func (e *Error) push(ie interface{}, n int) *Error {
 	if err == nil {
 		return nil
 	}
-	err.SetNext(e)
+	err.next = e
 	return err
 }
 
@@ -133,17 +274,23 @@ func (e *Error) Push(ie interface{}) *Error {
 // types of error beside the *Error. e1 must be *Error or error
 // and e2 must be *Error, error or string.
 func Push(e1, e2 interface{}) error {
+	return PushN(e1, e2, 1)
+}
+
+func PushN(e1, e2 interface{}, n int) error {
 	if e1 == nil {
 		if e2b, ok := e2.(*Error); ok {
-			return e2b.forward(3)
+			return e2b.forward(3 + n)
 		}
-		return newError(e2, 2)
+		return newError(e2, 2+n)
 	}
 	switch val := e1.(type) {
 	case *Error:
-		return val.push(e2, 3)
+		return val.push(e2, 3+n)
 	case error:
-		return newError(val, 2).push(e2, 3)
+		return newError(val, 2+n).push(e2, 3+n)
+	case string:
+		return newError(val, 2+n).push(e2, 3+n)
 	default:
 		panic("invalid type, e1 must be *Error")
 	}
@@ -155,7 +302,7 @@ func (e *Error) forward(n int) *Error {
 		return nil
 	}
 	ne := newError(e, n)
-	ne.SetNext(e)
+	ne.next = e
 	return ne
 }
 
@@ -165,9 +312,15 @@ func (e *Error) Forward() *Error {
 }
 
 // Forward the error. Only stack the error menssage and the debug data.
-// Free function to use with other types of error beside the *Error.
+// Free function to use with other types of error besides the *Error.
 // ie must be *Error and r must be *Error, error or string.
 func Forward(ie interface{}) error {
+	return ForwardN(ie, 1)
+}
+
+// ForwardN skip n levels from the statck when login the
+// trace.
+func ForwardN(ie interface{}, n int) error {
 	if ie == nil {
 		return nil
 	}
@@ -176,15 +329,15 @@ func Forward(ie interface{}) error {
 		if val == nil {
 			return nil
 		}
-		ret := val.forward(3)
+		ret := val.forward(3 + n)
 		if ret == nil {
 			return nil
 		}
 		return ret
 	case error:
-		return newError(val, 2)
+		return newError(val, 2+n)
 	case string:
-		return newError(val, 2)
+		return newError(val, 2+n)
 	default:
 		panic("invalid type")
 	}
@@ -243,7 +396,7 @@ func (e *Error) Find(ie interface{}) int {
 		return -1
 	}
 	deep := 0
-	for err := e; err != nil; err = err.Next() {
+	for err := e; err != nil; err = err.next {
 		if err.Equal(ie) {
 			return deep
 		}
@@ -269,7 +422,7 @@ func Find(e, ie interface{}) int {
 
 // Trace the error and return a string.
 func (e *Error) Trace() (s string) {
-	for err := e; err != nil; err = err.Next() {
+	for err := e; err != nil; err = err.next {
 		s = s + fmt.Sprintln(err)
 	}
 	return
@@ -348,6 +501,10 @@ func New(ie interface{}, a ...interface{}) *Error {
 	return newError(ie, 2, a...)
 }
 
+func NewN(ie interface{}, n int, a ...interface{}) *Error {
+	return newError(ie, 2+n, a...)
+}
+
 // Contains checks if the error message contains the sub string.
 func (e *Error) Contains(sub string) bool {
 	if e.err == nil {
@@ -384,7 +541,7 @@ func Contains(ie interface{}, sub string) bool {
 // the deep of the error.
 func (e *Error) FindStr(sub string) int {
 	deep := 0
-	for err := e; err != nil; err = err.Next() {
+	for err := e; err != nil; err = err.next {
 		if err.Contains(sub) {
 			return deep
 		}
