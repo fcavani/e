@@ -35,6 +35,7 @@ type Error struct {
 
 func init() {
 	types.Insert(&Error{})
+	gob.Register(&Error{})
 }
 
 type GoError string
