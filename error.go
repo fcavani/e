@@ -187,6 +187,9 @@ func (e *Error) formatError() string {
 
 // Error return the packed, file, line number and the error message.
 func (e *Error) Error() string {
+	if e == nil {
+		return "nil"
+	}
 	if e.debugInfo {
 		return fmt.Sprintf("%v - %v - %v: %v", e.pkg, e.file, strconv.Itoa(e.line), e.formatError())
 	}
@@ -195,11 +198,17 @@ func (e *Error) Error() string {
 
 // String return only the error message of the last error.
 func (e *Error) String() string {
+	if e == nil {
+		return "nil"
+	}
 	return e.err.Error()
 }
 
 // GoString return the same as Error function, more verbose.
 func (e *Error) GoString() string {
+	if e == nil {
+		return "nil"
+	}
 	if e.debugInfo {
 		return fmt.Sprintf("package: %v - file: %v - line: %v - error: %v", e.pkg, e.file, strconv.Itoa(e.line), e.formatError())
 	}
@@ -253,11 +262,14 @@ func (e *Error) last() *Error {
 }
 
 func (e *Error) push(ie interface{}, n int) *Error {
+	if ie == nil {
+		return nil
+	}
 	var err *Error
 	if e2, ok := ie.(*Error); ok {
 		err = e2.last()
 	} else {
-		err = newError(ie, n)
+		err = newError(ie, n).(*Error)
 	}
 	if err == nil {
 		return nil
@@ -289,9 +301,9 @@ func PushN(e1, e2 interface{}, n int) error {
 	case *Error:
 		return val.push(e2, 3+n)
 	case error:
-		return newError(val, 2+n).push(e2, 3+n)
+		return newError(val, 2+n).(*Error).push(e2, 3+n)
 	case string:
-		return newError(val, 2+n).push(e2, 3+n)
+		return newError(val, 2+n).(*Error).push(e2, 3+n)
 	default:
 		panic("invalid type, e1 must be *Error")
 	}
@@ -299,10 +311,10 @@ func PushN(e1, e2 interface{}, n int) error {
 }
 
 func (e *Error) forward(n int) *Error {
-	if e.err == nil {
+	if e == nil || e.err == nil {
 		return nil
 	}
-	ne := newError(e, n)
+	ne := newError(e, n).(*Error)
 	ne.next = e
 	return ne
 }
@@ -383,7 +395,7 @@ func Equal(l, r interface{}) bool {
 	case *Error:
 		return val.Equal(r)
 	case error:
-		return newError(val, 2).Equal(r)
+		return newError(val, 2).(*Error).Equal(r)
 	default:
 		panic("invalid type, must be *Error")
 	}
@@ -443,9 +455,9 @@ func Trace(ie interface{}) string {
 	return ""
 }
 
-func newError(ie interface{}, level int, a ...interface{}) (err *Error) {
+func newError(ie interface{}, level int, a ...interface{}) (err error) {
 	if ie == nil {
-		return nil
+		return
 	}
 	var e error
 	switch val := ie.(type) {
@@ -498,11 +510,11 @@ func newError(ie interface{}, level int, a ...interface{}) (err *Error) {
 // the verb in the error string that will be replaced when
 // Error and GoString functions is called. The valids verbs are
 // the same verbs in the fmt package.
-func New(ie interface{}, a ...interface{}) *Error {
+func New(ie interface{}, a ...interface{}) error {
 	return newError(ie, 2, a...)
 }
 
-func NewN(ie interface{}, n int, a ...interface{}) *Error {
+func NewN(ie interface{}, n int, a ...interface{}) error {
 	return newError(ie, 2+n, a...)
 }
 
