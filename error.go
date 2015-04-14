@@ -75,7 +75,11 @@ func (e *Error) Copy() error {
 	}
 }
 
+// Copy creates a copy of an error.
 func Copy(ie interface{}) error {
+	if ie == nil {
+		return nil
+	}
 	switch e := ie.(type) {
 	case *Error:
 		return e.Copy()
