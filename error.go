@@ -12,6 +12,7 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"reflect"
 	"runtime"
 	"strconv"
 	"strings"
@@ -52,6 +53,42 @@ const (
 	ErrorGo
 	ErrorLocal
 )
+
+func (e *Error) Copy() error {
+	if e == nil {
+		return nil
+	}
+	args := types.Copy(reflect.ValueOf(e.args)).Interface().([]interface{})
+	n := e.next.Copy()
+	var next *Error
+	if n != nil {
+		next = n.(*Error)
+	}
+	return &Error{
+		err:       e.err,
+		args:      args,
+		pkg:       e.pkg,
+		file:      e.file,
+		line:      e.line,
+		debugInfo: e.debugInfo,
+		next:      next,
+	}
+}
+
+func Copy(ie interface{}) error {
+	switch e := ie.(type) {
+	case *Error:
+		return e.Copy()
+	case error:
+		val := reflect.ValueOf(e)
+		if types.AnySettableValue(val) {
+			return types.Copy(val).Interface().(error)
+		}
+		return errors.New(e.Error())
+	default:
+		panic("type not supported")
+	}
+}
 
 func (e *Error) GobEncode() ([]byte, error) {
 	var err error

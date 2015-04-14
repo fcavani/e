@@ -256,3 +256,31 @@ func TestNil(t *testing.T) {
 	// 	t.Fatalf("not nil: %#v", err)
 	// }
 }
+
+func TestCopy1(t *testing.T) {
+	err := New(DUMMYERROR).(*Error).Push(STRERROR).Push(SILLYERROR).Push(ANOTHERERROR).Push(STILLAERROR)
+	cp := Copy(err)
+	if deep := FindStr(cp, "dummy"); deep != 4 {
+		t.Fatal("FindStr failed:", deep)
+	}
+	if deep := FindStr(cp, "string"); deep != 3 {
+		t.Fatal("FindStr failed:", deep)
+	}
+	if deep := FindStr(cp, "silly"); deep != 2 {
+		t.Fatal("FindStr failed:", deep)
+	}
+	if deep := FindStr(cp, "another"); deep != 1 {
+		t.Fatal("FindStr failed:", deep)
+	}
+	if deep := FindStr(cp, "still"); deep != 0 {
+		t.Fatal("FindStr failed:", deep)
+	}
+}
+
+func TestCopy2(t *testing.T) {
+	err := errors.New("blá")
+	cp := Copy(err)
+	if cp.Error() != "blá" {
+		t.Fatal("copy failed", cp.Error())
+	}
+}
