@@ -275,7 +275,7 @@ func Phrase(i interface{}) string {
 	}
 	first := string(unicode.ToUpper(rune(msg[0])))
 	if len(msg) > 0 && msg[len(msg)-1] == '.' {
-		return fisrt + msg[1:]
+		return first + msg[1:]
 	}
 	return first + msg[1:] + "."
 }
