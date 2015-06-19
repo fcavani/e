@@ -273,7 +273,11 @@ func Phrase(i interface{}) string {
 	default:
 		panic("invalid type, must be Stringer or error")
 	}
-	return string(unicode.ToUpper(rune(msg[0]))) + msg[1:] + "."
+	first := string(unicode.ToUpper(rune(msg[0])))
+	if len(msg) > 0 && msg[len(msg)-1] == '.' {
+		return fisrt + msg[1:]
+	}
+	return first + msg[1:] + "."
 }
 
 // String return the string associated with the error
