@@ -556,11 +556,35 @@ func newError(ie interface{}, level int, a ...interface{}) (err error) {
 // Error and GoString functions is called. The valids verbs are
 // the same verbs in the fmt package.
 func New(ie interface{}, a ...interface{}) error {
-	return newError(ie, 2, a...)
+	if ie == nil {
+		return nil
+	}
+	switch err := ie.(type) {
+	case *Error:
+		return err
+	case string:
+		return newError(err, 2, a...)
+	case error:
+		return newError(err, 2, a...)
+	default:
+		panic("invalid error type")
+	}
 }
 
 func NewN(ie interface{}, n int, a ...interface{}) error {
-	return newError(ie, 2+n, a...)
+	if ie == nil {
+		return nil
+	}
+	switch err := ie.(type) {
+	case *Error:
+		return err
+	case string:
+		return newError(err, 2+n, a...)
+	case error:
+		return newError(err, 2+n, a...)
+	default:
+		panic("invalid error type")
+	}
 }
 
 // Contains checks if the error message contains the sub string.
