@@ -54,6 +54,32 @@ const (
 	ErrorLocal
 )
 
+// Pkg return the package where the error occured.
+func (e *Error) Pkg() string {
+	return e.pkg
+}
+
+//File returns the file name of the source where occurred the error.
+func (e *Error) File() string {
+	return e.file
+}
+
+// Line is the line of the error.
+func (e *Error) Line() int {
+	return e.line
+}
+
+// Debug return true if the package, file and line are present or false if else.
+func (e *Error) Debug() bool {
+	return e.debugInfo
+}
+
+// Next return the next error in the chain
+func (e *Error) Next() *Error {
+	return e.next
+}
+
+//Copy create a new copy of e.
 func (e *Error) Copy() error {
 	if e == nil {
 		return nil
@@ -646,4 +672,36 @@ func FindStr(ie interface{}, sub string) int {
 		panic("invalid type")
 	}
 	panic("don't get here")
+}
+
+func Merge(e1, e2 interface{}) error {
+	if e1 == nil && e2 == nil {
+		return nil
+	}
+	if e1 != nil && e2 == nil {
+		return newError(e1, 2)
+	}
+	if e1 == nil && e2 != nil {
+		return newError(e2, 2)
+	}
+	switch val := e2.(type) {
+	case *Error:
+		var prev *Error
+		for err := val.next; err != nil; err = err.next {
+			prev = err
+		}
+		prev.next = newError(e1, 2).(*Error)
+		return val
+	case error:
+		prev := newError(val, 2).(*Error)
+		prev.next = newError(e1, 2).(*Error)
+		return prev
+	case string:
+		prev := newError(val, 2).(*Error)
+		prev.next = newError(e1, 2).(*Error)
+		return prev
+	default:
+		panic("invalid type")
+	}
+	panic("¯|_(ツ)_/¯")
 }

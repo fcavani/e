@@ -9,6 +9,7 @@ package e
 import (
 	"errors"
 	"testing"
+	"strconv"
 )
 
 var DUMMYERROR = errors.New("dummy error")
@@ -27,20 +28,20 @@ func TestNew(t *testing.T) {
 	if str.(*Error).String() != STRERROR {
 		t.Fatal("Invalid error:", str.(*Error).String())
 	}
-	if dummy.Error() != "github.com/fcavani/e.TestNew - e/error_test.go - 22: dummy error" {
+	if dummy.Error() != "github.com/fcavani/e.TestNew - e/error_test.go - 23: dummy error" {
 		t.Fatal("Wrong debug info:", dummy.Error())
 	}
 }
 
-const trace = `github.com/fcavani/e.TestPush - e/error_test.go - 51: still a error
-github.com/fcavani/e.TestPush - e/error_test.go - 50: another error
-github.com/fcavani/e.TestPush - e/error_test.go - 49: silly error
-github.com/fcavani/e.TestPush - e/error_test.go - 48: string error
-github.com/fcavani/e.TestPush - e/error_test.go - 47: dummy error
+const trace = `github.com/fcavani/e.TestPush - e/error_test.go - 52: still a error
+github.com/fcavani/e.TestPush - e/error_test.go - 51: another error
+github.com/fcavani/e.TestPush - e/error_test.go - 50: silly error
+github.com/fcavani/e.TestPush - e/error_test.go - 49: string error
+github.com/fcavani/e.TestPush - e/error_test.go - 48: dummy error
 `
 
-const tracep1 = `github.com/fcavani/e.TestPush - e/error_test.go - 59: string error
-github.com/fcavani/e.TestPush - e/error_test.go - 47: dummy error
+const tracep1 = `github.com/fcavani/e.TestPush - e/error_test.go - 60: string error
+github.com/fcavani/e.TestPush - e/error_test.go - 48: dummy error
 `
 
 func TestPush(t *testing.T) {
@@ -62,18 +63,18 @@ func TestPush(t *testing.T) {
 	}
 }
 
-const trace2 = `github.com/fcavani/e.TestForward - e/error_test.go - 82: dummy error
+const trace2 = `github.com/fcavani/e.TestForward - e/error_test.go - 83: dummy error
+github.com/fcavani/e.TestForward - e/error_test.go - 82: dummy error
 github.com/fcavani/e.TestForward - e/error_test.go - 81: dummy error
-github.com/fcavani/e.TestForward - e/error_test.go - 80: dummy error
 `
-const trace3 = `github.com/fcavani/e.TestForward - e/error_test.go - 96: another error
-github.com/fcavani/e.TestForward - e/error_test.go - 95: another error
-`
-
-const trace4 = `github.com/fcavani/e.TestForward - e/error_test.go - 100: silly error
+const trace3 = `github.com/fcavani/e.TestForward - e/error_test.go - 97: another error
+github.com/fcavani/e.TestForward - e/error_test.go - 96: another error
 `
 
-const trace5 = `github.com/fcavani/e.TestForward - e/error_test.go - 104: string error
+const trace4 = `github.com/fcavani/e.TestForward - e/error_test.go - 101: silly error
+`
+
+const trace5 = `github.com/fcavani/e.TestForward - e/error_test.go - 105: string error
 `
 
 func TestForward(t *testing.T) {
@@ -282,5 +283,50 @@ func TestCopy2(t *testing.T) {
 	cp := Copy(err)
 	if cp.Error() != "blá" {
 		t.Fatal("copy failed", cp.Error())
+	}
+}
+
+func TestMerge(t *testing.T) {
+	err := Merge(New("1"), Merge("2", "3")).(*Error)
+	count := 3
+	for e := err; e != nil; e = e.next {
+		i, err := strconv.Atoi(e.err.Error())
+		if err != nil {
+			t.Fatal(err)
+		}
+		if i != count {
+			t.Fatal("errors aren't in order")
+		}
+		count--
+	}
+	err = Merge(New("1"), Merge("2", errors.New("3"))).(*Error)
+	count = 3
+	for e := err; e != nil; e = e.next {
+		i, err := strconv.Atoi(e.err.Error())
+		if err != nil {
+			t.Fatal(err)
+		}
+		if i != count {
+			t.Fatal("errors aren't in order")
+		}
+		count--
+	}
+	er := Merge(nil, nil)
+	if er != nil {
+		t.Fatal("not nil")
+	}
+	er = Merge(nil, New("1"))
+	if er == nil {
+		t.Fatal("nil")
+	}
+	if er.(*Error).err.Error() != "1" {
+		t.Fatal("error value is wrong")
+	}
+	er = Merge(New("1"), nil)
+	if er == nil {
+		t.Fatal("nil")
+	}
+	if er.(*Error).err.Error() != "1" {
+		t.Fatal("error value is wrong")
 	}
 }
