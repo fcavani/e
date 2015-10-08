@@ -686,17 +686,26 @@ func Merge(e1, e2 interface{}) error {
 	}
 	switch val := e2.(type) {
 	case *Error:
-		var prev *Error
+		if val == nil {
+			return newError(e1, 2)
+		}
+		prev := val
 		for err := val.next; err != nil; err = err.next {
 			prev = err
 		}
 		prev.next = newError(e1, 2).(*Error)
 		return val
 	case error:
+		if val == nil {
+			return newError(e1, 2)
+		}
 		prev := newError(val, 2).(*Error)
 		prev.next = newError(e1, 2).(*Error)
 		return prev
 	case string:
+		if val == "" {
+			return newError(e1, 2)
+		}
 		prev := newError(val, 2).(*Error)
 		prev.next = newError(e1, 2).(*Error)
 		return prev
