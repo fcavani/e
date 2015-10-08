@@ -674,6 +674,23 @@ func FindStr(ie interface{}, sub string) int {
 	panic("don't get here")
 }
 
+func newm(e1 interface{}) *Error {
+	if e1 == nil {
+		return nil
+	}
+	switch val := e1.(type) {
+	case *Error:
+		return val
+	case error:
+		return newError(val, 3).(*Error)
+	case string:
+		return newError(val, 3).(*Error)
+	default:
+		panic("invalid type")
+	}
+	panic("never get here")
+}
+
 func Merge(e1, e2 interface{}) error {
 	if e1 == nil && e2 == nil {
 		return nil
@@ -687,27 +704,27 @@ func Merge(e1, e2 interface{}) error {
 	switch val := e2.(type) {
 	case *Error:
 		if val == nil {
-			return newError(e1, 2)
+			return newm(e1)
 		}
 		prev := val
 		for err := val.next; err != nil; err = err.next {
 			prev = err
 		}
-		prev.next = newError(e1, 2).(*Error)
+		prev.next = newm(e1)
 		return val
 	case error:
 		if val == nil {
-			return newError(e1, 2)
+			return newm(e1)
 		}
 		prev := newError(val, 2).(*Error)
-		prev.next = newError(e1, 2).(*Error)
+		prev.next = newm(e1)
 		return prev
 	case string:
 		if val == "" {
-			return newError(e1, 2)
+			return newm(e1)
 		}
 		prev := newError(val, 2).(*Error)
-		prev.next = newError(e1, 2).(*Error)
+		prev.next = newm(e1)
 		return prev
 	default:
 		panic("invalid type")
