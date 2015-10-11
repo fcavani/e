@@ -8,8 +8,8 @@ package e
 
 import (
 	"errors"
-	"testing"
 	"strconv"
+	"testing"
 )
 
 var DUMMYERROR = errors.New("dummy error")
