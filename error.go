@@ -18,7 +18,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/fcavani/util/types"
+	"github.com/fcavani/types"
 )
 
 // Error expand go error type with debug information and error trace.
