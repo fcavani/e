@@ -6,6 +6,6 @@ This package bring a way to stack the errors for future reference. There is
 tools to retrive the errors from this stack and make decisions during the
 run-time. 
 
-No use this package. :) I make the e package only for use in my others go
-packages, but when I decide
+It's stable but no use this package. :) I make the e package only for use in my
+others go packages, but when I decide
 to relise this packages I make e available for compatibility reasons.
