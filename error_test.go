@@ -8,6 +8,7 @@ package e
 
 import (
 	"errors"
+	"io"
 	"strconv"
 	"testing"
 )
@@ -28,20 +29,20 @@ func TestNew(t *testing.T) {
 	if str.(*Error).String() != STRERROR {
 		t.Fatal("Invalid error:", str.(*Error).String())
 	}
-	if dummy.Error() != "github.com/fcavani/e.TestNew - e/error_test.go - 23: dummy error" {
+	if dummy.Error() != "github.com/fcavani/e.TestNew - e/error_test.go - 24: dummy error" {
 		t.Fatal("Wrong debug info:", dummy.Error())
 	}
 }
 
-const trace = `github.com/fcavani/e.TestPush - e/error_test.go - 52: still a error
-github.com/fcavani/e.TestPush - e/error_test.go - 51: another error
-github.com/fcavani/e.TestPush - e/error_test.go - 50: silly error
-github.com/fcavani/e.TestPush - e/error_test.go - 49: string error
-github.com/fcavani/e.TestPush - e/error_test.go - 48: dummy error
+const trace = `github.com/fcavani/e.TestPush - e/error_test.go - 53: still a error
+github.com/fcavani/e.TestPush - e/error_test.go - 52: another error
+github.com/fcavani/e.TestPush - e/error_test.go - 51: silly error
+github.com/fcavani/e.TestPush - e/error_test.go - 50: string error
+github.com/fcavani/e.TestPush - e/error_test.go - 49: dummy error
 `
 
-const tracep1 = `github.com/fcavani/e.TestPush - e/error_test.go - 60: string error
-github.com/fcavani/e.TestPush - e/error_test.go - 48: dummy error
+const tracep1 = `github.com/fcavani/e.TestPush - e/error_test.go - 61: string error
+github.com/fcavani/e.TestPush - e/error_test.go - 49: dummy error
 `
 
 func TestPush(t *testing.T) {
@@ -63,18 +64,18 @@ func TestPush(t *testing.T) {
 	}
 }
 
-const trace2 = `github.com/fcavani/e.TestForward - e/error_test.go - 83: dummy error
+const trace2 = `github.com/fcavani/e.TestForward - e/error_test.go - 84: dummy error
+github.com/fcavani/e.TestForward - e/error_test.go - 83: dummy error
 github.com/fcavani/e.TestForward - e/error_test.go - 82: dummy error
-github.com/fcavani/e.TestForward - e/error_test.go - 81: dummy error
 `
-const trace3 = `github.com/fcavani/e.TestForward - e/error_test.go - 97: another error
-github.com/fcavani/e.TestForward - e/error_test.go - 96: another error
-`
-
-const trace4 = `github.com/fcavani/e.TestForward - e/error_test.go - 101: silly error
+const trace3 = `github.com/fcavani/e.TestForward - e/error_test.go - 98: another error
+github.com/fcavani/e.TestForward - e/error_test.go - 97: another error
 `
 
-const trace5 = `github.com/fcavani/e.TestForward - e/error_test.go - 105: string error
+const trace4 = `github.com/fcavani/e.TestForward - e/error_test.go - 102: silly error
+`
+
+const trace5 = `github.com/fcavani/e.TestForward - e/error_test.go - 106: string error
 `
 
 func TestForward(t *testing.T) {
@@ -197,6 +198,9 @@ func TestFind(t *testing.T) {
 		t.Fatal("Find failed.")
 	}
 	if Find(still, STRERROR) != 3 {
+		t.Fatal("Find failed.")
+	}
+	if Find(io.EOF, io.EOF) != 0 {
 		t.Fatal("Find failed.")
 	}
 }

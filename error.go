@@ -498,6 +498,8 @@ func Find(e, ie interface{}) int {
 	switch err := e.(type) {
 	case *Error:
 		return err.Find(ie)
+	case error:
+		return New(err).(*Error).Find(ie)
 	default:
 		panic("invalid type, must be *Error")
 	}
