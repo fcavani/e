@@ -19,6 +19,7 @@ import (
 	"unicode"
 
 	"github.com/fcavani/types"
+	"gopkg.in/vmihailenco/msgpack.v2"
 )
 
 // Error expand go error type with debug information and error trace.
@@ -187,6 +188,130 @@ func (e *Error) GobEncode() ([]byte, error) {
 func (e *Error) GobDecode(data []byte) error {
 	buf := bytes.NewBuffer(data)
 	dec := gob.NewDecoder(buf)
+	var msg messageType
+	err := dec.Decode(&msg)
+	if err != nil {
+		return err
+	}
+	switch msg {
+	case ErrorLocal:
+		var err_ *Error
+		err := dec.Decode(&err_)
+		if err != nil {
+			return err
+		}
+		e.err = err_
+	case ErrorGo:
+		var err_ GoError
+		err := dec.Decode(&err_)
+		if err != nil {
+			return err
+		}
+		e.err = err_
+	default:
+		return errors.New("protocol error")
+	}
+	err = dec.Decode(&e.args)
+	if err != nil {
+		return err
+	}
+	err = dec.Decode(&e.pkg)
+	if err != nil {
+		return err
+	}
+	err = dec.Decode(&e.file)
+	if err != nil {
+		return err
+	}
+	err = dec.Decode(&e.line)
+	if err != nil {
+		return err
+	}
+	err = dec.Decode(&e.debugInfo)
+	if err != nil {
+		return err
+	}
+	err = dec.Decode(&msg)
+	if err != nil {
+		return err
+	}
+	switch msg {
+	case NextIsNill:
+		return nil
+	case Next:
+		err = dec.Decode(&e.next)
+		if err != nil {
+			return err
+		}
+	default:
+		return errors.New("protocol error")
+	}
+	return nil
+}
+
+func (e *Error) EncodeMsgpack(enc *msgpack.Encoder) error {
+	var err error
+	switch v := e.err.(type) {
+	case *Error:
+		err = enc.Encode(ErrorLocal)
+		if err != nil {
+			return err
+		}
+		err = enc.Encode(v)
+		if err != nil {
+			return err
+		}
+	case error:
+		err = enc.Encode(ErrorGo)
+		if err != nil {
+			return err
+		}
+		err = enc.Encode(GoError(v.Error()))
+		if err != nil {
+			return err
+		}
+	default:
+		panic("type not supported")
+	}
+	err = enc.Encode(e.args)
+	if err != nil {
+		return err
+	}
+	err = enc.Encode(e.pkg)
+	if err != nil {
+		return err
+	}
+	err = enc.Encode(e.file)
+	if err != nil {
+		return err
+	}
+	err = enc.Encode(e.line)
+	if err != nil {
+		return err
+	}
+	err = enc.Encode(e.debugInfo)
+	if err != nil {
+		return err
+	}
+	if e.next == nil {
+		err = enc.Encode(NextIsNill)
+		if err != nil {
+			return err
+		}
+	} else {
+		err = enc.Encode(Next)
+		if err != nil {
+			return err
+		}
+		err = enc.Encode(e.next)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (e *Error) DecodeMsgpack(dec *msgpack.Decoder) error {
 	var msg messageType
 	err := dec.Decode(&msg)
 	if err != nil {
