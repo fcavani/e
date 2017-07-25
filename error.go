@@ -16,6 +16,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 	"unicode"
 
 	"github.com/fcavani/types"
@@ -35,9 +36,16 @@ type Error struct {
 	next      *Error
 }
 
+var once sync.Once
+
 func init() {
-	types.Insert(&Error{})
-	gob.Register(&Error{})
+	once.Do(func() {
+		defer func() {
+			recover()
+		}()
+		types.Insert(&Error{})
+		gob.Register(&Error{})
+	})
 }
 
 type GoError string
@@ -647,8 +655,10 @@ func Trace(ie interface{}) string {
 	switch val := ie.(type) {
 	case *Error:
 		return val.Trace()
+	case error:
+		return val.Error()
 	default:
-		panic("invalid type, must be *Error")
+		panic("invalid type")
 	}
 	return ""
 }
