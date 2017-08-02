@@ -868,3 +868,20 @@ func Merge(e1, e2 interface{}) error {
 	}
 	panic("¯|_(ツ)_/¯")
 }
+
+// Human returns a near human readable form.
+func Human(err interface{}) string {
+	if err == nil {
+		return "nil"
+	}
+	switch val := err.(type) {
+	case *Error:
+		return val.String()
+	case error:
+		return val.Error()
+	case string:
+		return val
+	default:
+		panic("invalid type")
+	}
+}
