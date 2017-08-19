@@ -385,6 +385,10 @@ func (e *Error) formatError() string {
 	return fmt.Sprintf(e.err.Error(), e.args...)
 }
 
+func (e *Error) Human() string {
+	return e.formatError()
+}
+
 // Error return the packed, file, line number and the error message.
 func (e *Error) Error() string {
 	if e == nil {
@@ -876,7 +880,7 @@ func Human(err interface{}) string {
 	}
 	switch val := err.(type) {
 	case *Error:
-		return val.String()
+		return val.Human()
 	case error:
 		return val.Error()
 	case string:
