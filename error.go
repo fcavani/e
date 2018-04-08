@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 // Start date:		2013-05-08
 
-// Helper functions to manipulate errors and trace then.
+// Package e is a helper functions to manipulate errors and trace then.
 package e
 
 import (
@@ -47,6 +47,7 @@ func init() {
 	})
 }
 
+// GoError is a simple string thats implement error interface.
 type GoError string
 
 func (g GoError) Error() string {
@@ -55,6 +56,7 @@ func (g GoError) Error() string {
 
 type messageType uint8
 
+// types of error
 const (
 	NextIsNill messageType = iota
 	Next
@@ -62,7 +64,7 @@ const (
 	ErrorLocal
 )
 
-// Pkg return the package where the error occured.
+// Pkg return the package where the error occurred.
 func (e *Error) Pkg() string {
 	return e.pkg
 }
@@ -128,6 +130,7 @@ func Copy(ie interface{}) error {
 	}
 }
 
+// GobEncode implements custom gob encode.
 func (e *Error) GobEncode() ([]byte, error) {
 	var err error
 	buf := bytes.NewBuffer([]byte{})
@@ -192,6 +195,7 @@ func (e *Error) GobEncode() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+// GobDecode implements custom gob decode.
 func (e *Error) GobDecode(data []byte) error {
 	buf := bytes.NewBuffer(data)
 	dec := gob.NewDecoder(buf)
@@ -202,19 +206,19 @@ func (e *Error) GobDecode(data []byte) error {
 	}
 	switch msg {
 	case ErrorLocal:
-		var err_ *Error
-		err := dec.Decode(&err_)
+		var er *Error
+		err := dec.Decode(&er)
 		if err != nil {
 			return err
 		}
-		e.err = err_
+		e.err = er
 	case ErrorGo:
-		var err_ GoError
-		err := dec.Decode(&err_)
+		var er GoError
+		err := dec.Decode(&er)
 		if err != nil {
 			return err
 		}
-		e.err = err_
+		e.err = er
 	default:
 		return errors.New("protocol error")
 	}
@@ -256,6 +260,7 @@ func (e *Error) GobDecode(data []byte) error {
 	return nil
 }
 
+// EncodeMsgpack custom msgpack encode function
 func (e *Error) EncodeMsgpack(enc *msgpack.Encoder) error {
 	var err error
 	switch v := e.err.(type) {
@@ -318,6 +323,7 @@ func (e *Error) EncodeMsgpack(enc *msgpack.Encoder) error {
 	return nil
 }
 
+// DecodeMsgpack is a custom msgpack decode function.
 func (e *Error) DecodeMsgpack(dec *msgpack.Decoder) error {
 	var msg messageType
 	err := dec.Decode(&msg)
@@ -326,19 +332,19 @@ func (e *Error) DecodeMsgpack(dec *msgpack.Decoder) error {
 	}
 	switch msg {
 	case ErrorLocal:
-		var err_ *Error
-		err := dec.Decode(&err_)
+		var er *Error
+		err := dec.Decode(&er)
 		if err != nil {
 			return err
 		}
-		e.err = err_
+		e.err = er
 	case ErrorGo:
-		var err_ GoError
-		err := dec.Decode(&err_)
+		var er GoError
+		err := dec.Decode(&er)
 		if err != nil {
 			return err
 		}
-		e.err = err_
+		e.err = er
 	default:
 		return errors.New("protocol error")
 	}
@@ -384,6 +390,7 @@ func (e *Error) formatError() string {
 	return fmt.Sprintf(e.err.Error(), e.args...)
 }
 
+// Human is a humman readable error.
 func (e *Error) Human() string {
 	return e.formatError()
 }
@@ -418,11 +425,12 @@ func (e *Error) GoString() string {
 	return fmt.Sprintf("%#v", e.formatError())
 }
 
+// Arguments return the arguments of one error.
 func (e *Error) Arguments() []interface{} {
 	return e.args
 }
 
-// Transform an error message in something readable.
+// Phrase transform an error message in something readable.
 func Phrase(i interface{}) string {
 	msg := ""
 	switch val := i.(type) {
@@ -497,6 +505,7 @@ func Push(e1, e2 interface{}) error {
 	return PushN(e1, e2, 1)
 }
 
+// PushN like Push but with the stack deep to get the file name.
 func PushN(e1, e2 interface{}, n int) error {
 	if e1 == nil {
 		if e2b, ok := e2.(*Error); ok {
@@ -514,7 +523,6 @@ func PushN(e1, e2 interface{}, n int) error {
 	default:
 		panic("invalid type, e1 must be *Error")
 	}
-	return nil
 }
 
 func (e *Error) forward(n int) *Error {
@@ -538,7 +546,7 @@ func Forward(ie interface{}) error {
 	return ForwardN(ie, 1)
 }
 
-// ForwardN skip n levels from the statck when login the
+// ForwardN skip n levels from the stack when login the
 // trace.
 func ForwardN(ie interface{}, n int) error {
 	if ie == nil {
@@ -561,7 +569,6 @@ func ForwardN(ie interface{}, n int) error {
 	default:
 		panic("invalid type")
 	}
-	return nil
 }
 
 //Equal compare if the errors are the same. ie must be *Error and r must be
@@ -589,7 +596,6 @@ func (e *Error) Equal(ie interface{}) bool {
 	default:
 		panic("invalid type")
 	}
-	return false
 }
 
 // Equal compare if the errors are the same. l must be *Error and r must be
@@ -606,7 +612,6 @@ func Equal(l, r interface{}) bool {
 	default:
 		panic("invalid type, must be *Error")
 	}
-	return false
 }
 
 // Find an error in the chain. ie must be
@@ -639,7 +644,6 @@ func Find(e, ie interface{}) int {
 	default:
 		panic("invalid type, must be *Error")
 	}
-	return -1
 }
 
 // Trace the error and return a string.
@@ -663,7 +667,6 @@ func Trace(ie interface{}) string {
 	default:
 		panic("invalid type")
 	}
-	return ""
 }
 
 func newError(ie interface{}, level int, a ...interface{}) (err error) {
@@ -737,6 +740,7 @@ func New(ie interface{}, a ...interface{}) error {
 	}
 }
 
+// NewN like New but with the stack deep to get the file name.
 func NewN(ie interface{}, n int, a ...interface{}) error {
 	if ie == nil {
 		return nil
@@ -782,7 +786,6 @@ func Contains(ie interface{}, sub string) bool {
 	default:
 		panic("invalid type")
 	}
-	panic("don't get here")
 }
 
 // FindStr find a sub string int the chain of error and return
@@ -798,6 +801,7 @@ func (e *Error) FindStr(sub string) int {
 	return -1
 }
 
+// FindStr in a error.
 func FindStr(ie interface{}, sub string) int {
 	if ie == nil || sub == "" {
 		return -1
@@ -811,7 +815,6 @@ func FindStr(ie interface{}, sub string) int {
 	default:
 		panic("invalid type")
 	}
-	panic("don't get here")
 }
 
 func newm(e1 interface{}) *Error {
@@ -828,9 +831,9 @@ func newm(e1 interface{}) *Error {
 	default:
 		panic("invalid type")
 	}
-	panic("never get here")
 }
 
+// Merge two errors.
 func Merge(e1, e2 interface{}) error {
 	if e1 == nil && e2 == nil {
 		return nil
@@ -869,7 +872,7 @@ func Merge(e1, e2 interface{}) error {
 	default:
 		panic("invalid type")
 	}
-	panic("¯|_(ツ)_/¯")
+	//panic("¯|_(ツ)_/¯")
 }
 
 // Human returns a near human readable form.
