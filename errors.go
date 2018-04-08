@@ -2,11 +2,13 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 // Start date:		2015-01-12
-// Last modification:	2015-
 
 package e
 
-const ErrEmptyString = "empty string"
-const ErrInvalidType = "type is invalid"
-const ErrInvalidLength = "length is invalid"
-const ErrInvalidInterface = "invalid interface"
+// Errors
+const (
+	ErrEmptyString = "empty string"
+	ErrInvalidType = "type is invalid"
+	ErrInvalidLength = "length is invalid"
+	ErrInvalidInterface = "invalid interface"
+)

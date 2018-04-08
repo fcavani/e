@@ -13,20 +13,24 @@ import (
 	"testing"
 )
 
-var DUMMYERROR = errors.New("dummy error")
-var SILLYERROR = errors.New("silly error")
-var ANOTHERERROR = errors.New("another error")
-var STILLAERROR = errors.New("still a error")
+// Silly errors
+var (
+	ErrDummy   = errors.New("dummy error")
+	ErrSilly   = errors.New("silly error")
+	ErrAnother = errors.New("another error")
+	ErrStill   = errors.New("still a error")
+)
 
-const STRERROR = "string error"
+// ErrStr is a simple string error.
+const ErrStr = "string error"
 
 func TestNew(t *testing.T) {
-	dummy := New(DUMMYERROR)
-	if dummy.(*Error).String() != DUMMYERROR.Error() {
+	dummy := New(ErrDummy)
+	if dummy.(*Error).String() != ErrDummy.Error() {
 		t.Fatal("Invalid error:", dummy.(*Error).String())
 	}
-	str := New(STRERROR)
-	if str.(*Error).String() != STRERROR {
+	str := New(ErrStr)
+	if str.(*Error).String() != ErrStr {
 		t.Fatal("Invalid error:", str.(*Error).String())
 	}
 	// if dummy.Error() != "github.com/fcavani/e.TestNew - e/error_test.go - 24: dummy error" {
@@ -46,11 +50,11 @@ github.com/fcavani/e.TestPush - e/error_test.go - 49: dummy error
 `
 
 func TestPush(t *testing.T) {
-	dummy := New(DUMMYERROR)
-	str := dummy.(*Error).Push(STRERROR)
-	silly := str.Push(SILLYERROR)
-	another := silly.Push(ANOTHERERROR)
-	still := another.Push(STILLAERROR)
+	dummy := New(ErrDummy)
+	str := dummy.(*Error).Push(ErrStr)
+	silly := str.Push(ErrSilly)
+	another := silly.Push(ErrAnother)
+	still := another.Push(ErrStill)
 	// if still.Trace() != trace {
 	// 	t.Fatal("Wrong trace:\n", still.Trace())
 	// }
@@ -58,7 +62,7 @@ func TestPush(t *testing.T) {
 	if n != nil {
 		t.Fatal("Not nil.")
 	}
-	//p1 := Push(dummy, STRERROR)
+	//p1 := Push(dummy, ErrStr)
 	// if Trace(p1) != tracep1 {
 	// 	t.Fatal("Wrong trace:\n", Trace(p1))
 	// }
@@ -79,7 +83,7 @@ const trace5 = `github.com/fcavani/e.TestForward - e/error_test.go - 106: string
 `
 
 func TestForward(t *testing.T) {
-	//dummy := New(DUMMYERROR)
+	//dummy := New(ErrDummy)
 	//f1 := dummy.(*Error).Forward()
 	//f2 := f1.Forward()
 	// if f2.Trace() != trace2 {
@@ -94,31 +98,31 @@ func TestForward(t *testing.T) {
 	if f3 != nil {
 		t.Fatalf("Not nil. (2) %#v\n", f3)
 	}
-	//a := New(ANOTHERERROR)
+	//a := New(ErrAnother)
 	//f4 := Forward(a)
 	// if f4.(*Error).Trace() != trace3 {
 	// 	t.Fatal("Wrong trace:\n", f4.(*Error).Trace())
 	// }
-	//f5 := Forward(SILLYERROR)
+	//f5 := Forward(ErrSilly)
 	// if f5.(*Error).Trace() != trace4 {
 	// 	t.Fatal("Wrong trace:\n", f5.(*Error).Trace())
 	// }
-	// f6 := Forward(STRERROR)
+	// f6 := Forward(ErrStr)
 	// if f6.(*Error).Trace() != trace5 {
 	// 	t.Fatal("Wrong trace:\n", f6.(*Error).Trace())
 	// }
 }
 
 func TestEqual(t *testing.T) {
-	goerror := errors.New(STRERROR)
-	str1 := New(STRERROR).(*Error)
-	str2 := New(STRERROR).(*Error)
-	dummy := New(DUMMYERROR).(*Error)
+	goerror := errors.New(ErrStr)
+	str1 := New(ErrStr).(*Error)
+	str2 := New(ErrStr).(*Error)
+	dummy := New(ErrDummy).(*Error)
 
 	if !str1.Equal(goerror) {
 		t.Fatal("Plain error failed.")
 	}
-	if !str1.Equal(STRERROR) {
+	if !str1.Equal(ErrStr) {
 		t.Fatal("String failed.")
 	}
 	if !str1.Equal(str2) {
@@ -133,7 +137,7 @@ func TestEqual(t *testing.T) {
 	if dummy.Equal(goerror) {
 		t.Fatal("Different error failed (2).")
 	}
-	if dummy.Equal(STRERROR) {
+	if dummy.Equal(ErrStr) {
 		t.Fatal("Different error failed (3).")
 	}
 	if dummy.Equal(str1) {
@@ -156,7 +160,7 @@ func TestEqual(t *testing.T) {
 	if !Equal(str1, goerror) {
 		t.Fatal("Not equal go error.")
 	}
-	if !Equal(str1, STRERROR) {
+	if !Equal(str1, ErrStr) {
 		t.Fatal("Not equal string error.")
 	}
 	if !Equal(str1, str2) {
@@ -171,7 +175,7 @@ func TestEqual(t *testing.T) {
 	if Equal(dummy, goerror) {
 		t.Fatal("Dummy equals to goerror.")
 	}
-	if Equal(dummy, STRERROR) {
+	if Equal(dummy, ErrStr) {
 		t.Fatal("Dummy equals to string error.")
 	}
 	if Equal(dummy, str1) {
@@ -180,24 +184,24 @@ func TestEqual(t *testing.T) {
 }
 
 func TestFind(t *testing.T) {
-	dummy := New(DUMMYERROR).(*Error)
-	str := dummy.Push(STRERROR)
-	silly := str.Push(SILLYERROR)
-	another := silly.Push(ANOTHERERROR)
-	still := another.Push(STILLAERROR)
-	if still.Find(SILLYERROR) != 2 {
+	dummy := New(ErrDummy).(*Error)
+	str := dummy.Push(ErrStr)
+	silly := str.Push(ErrSilly)
+	another := silly.Push(ErrAnother)
+	still := another.Push(ErrStill)
+	if still.Find(ErrSilly) != 2 {
 		t.Fatal("Find failed.")
 	}
-	if still.Find(STRERROR) != 3 {
+	if still.Find(ErrStr) != 3 {
 		t.Fatal("Find failed.")
 	}
 	if still.Find("not found") != -1 {
 		t.Fatal("Find failed.")
 	}
-	if Find(still, SILLYERROR) != 2 {
+	if Find(still, ErrSilly) != 2 {
 		t.Fatal("Find failed.")
 	}
-	if Find(still, STRERROR) != 3 {
+	if Find(still, ErrStr) != 3 {
 		t.Fatal("Find failed.")
 	}
 	if Find(io.EOF, io.EOF) != 0 {
@@ -205,18 +209,18 @@ func TestFind(t *testing.T) {
 	}
 }
 
-func TestPharse(t *testing.T) {
+func TestPhrase(t *testing.T) {
 	if Phrase(New("foo bar")) != "Foo bar." {
 		t.Fatal("Phrase failed")
 	}
 }
 
 func TestContains(t *testing.T) {
-	dummy := New(DUMMYERROR)
+	dummy := New(ErrDummy)
 	if !Contains(dummy, "dummy") {
 		t.Fatal("Contains failed")
 	}
-	if !Contains(DUMMYERROR, "dummy") {
+	if !Contains(ErrDummy, "dummy") {
 		t.Fatal("Contains failed")
 	}
 	if !Contains("ipsilum iptisum putsun dummy", "dummy") {
@@ -225,7 +229,7 @@ func TestContains(t *testing.T) {
 }
 
 func TestFindStr(t *testing.T) {
-	err := New(DUMMYERROR).(*Error).Push(STRERROR).Push(SILLYERROR).Push(ANOTHERERROR).Push(STILLAERROR)
+	err := New(ErrDummy).(*Error).Push(ErrStr).Push(ErrSilly).Push(ErrAnother).Push(ErrStill)
 	if deep := FindStr(err, "dummy"); deep != 4 {
 		t.Fatal("FindStr failed:", deep)
 	}
@@ -263,7 +267,7 @@ func TestNil(t *testing.T) {
 }
 
 func TestCopy1(t *testing.T) {
-	err := New(DUMMYERROR).(*Error).Push(STRERROR).Push(SILLYERROR).Push(ANOTHERERROR).Push(STILLAERROR)
+	err := New(ErrDummy).(*Error).Push(ErrStr).Push(ErrSilly).Push(ErrAnother).Push(ErrStill)
 	cp := Copy(err)
 	if deep := FindStr(cp, "dummy"); deep != 4 {
 		t.Fatal("FindStr failed:", deep)
