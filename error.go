@@ -22,6 +22,10 @@ import (
 	"gopkg.in/vmihailenco/msgpack.v2"
 )
 
+
+// Debug add file name and line number to the error
+var Debug = true
+
 // Error expand go error type with debug information and error trace.
 type Error struct {
 	err  error
@@ -692,7 +696,7 @@ func newError(ie interface{}, level int, a ...interface{}) (err error) {
 		panic("invalid type")
 	}
 	pc, file, line, ok := runtime.Caller(level)
-	if ok {
+	if ok && Debug {
 		s := strings.Split(file, "/")
 		l := len(s)
 		var file string
