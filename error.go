@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 // Start date:		2013-05-08
 
-// Package e is a helper functions to manipulate errors and trace then.
+// Package e are composed of helper functions to manipulate errors and trace then.
 package e
 
 import (
@@ -21,7 +21,6 @@ import (
 	"github.com/fcavani/types"
 	"gopkg.in/vmihailenco/msgpack.v2"
 )
-
 
 // Debug add file name and line number to the error
 var Debug = true
