@@ -6,6 +6,6 @@ matrix:
   allow_failures:
     - go: tip
 install:
-  go mod tidy
+  go mod download
 script:
  - go test -v ./...
