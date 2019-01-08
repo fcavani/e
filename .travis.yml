@@ -1,9 +1,11 @@
 language: go
 go:
- - 1.8.3
+ - "1.11.*"
  - tip
 matrix:
   allow_failures:
     - go: tip
+install:
+  go mod tidy
 script:
  - go test -v ./...
