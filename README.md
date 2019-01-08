@@ -5,6 +5,5 @@
 This package brings a way to stack errors for future reference. There are
 tools to retrieve this errors and make decisions during run-time.
 
-It's stable but its not for use. :) I make the package only for use in my
-others go packages, but I decide
-to open it for compatibility reasons.
+It's stable but its not for use. I made this package only for use in my
+others go packages, but I decide to open it for compatibility reasons.
