@@ -55,17 +55,10 @@ func TestPush(t *testing.T) {
 	silly := str.Push(ErrSilly)
 	another := silly.Push(ErrAnother)
 	still := another.Push(ErrStill)
-	// if still.Trace() != trace {
-	// 	t.Fatal("Wrong trace:\n", still.Trace())
-	// }
 	n := still.Push(nil)
 	if n != nil {
 		t.Fatal("Not nil.")
 	}
-	//p1 := Push(dummy, ErrStr)
-	// if Trace(p1) != tracep1 {
-	// 	t.Fatal("Wrong trace:\n", Trace(p1))
-	// }
 }
 
 const trace2 = `github.com/fcavani/e.TestForward - e/error_test.go - 84: dummy error
@@ -83,12 +76,6 @@ const trace5 = `github.com/fcavani/e.TestForward - e/error_test.go - 106: string
 `
 
 func TestForward(t *testing.T) {
-	//dummy := New(ErrDummy)
-	//f1 := dummy.(*Error).Forward()
-	//f2 := f1.Forward()
-	// if f2.Trace() != trace2 {
-	// 	t.Fatal("Wrong trace:\n", f2.Trace())
-	// }
 	f3 := Forward(nil)
 	if f3 != nil {
 		t.Fatal("Not nil.")
@@ -98,19 +85,6 @@ func TestForward(t *testing.T) {
 	if f3 != nil {
 		t.Fatalf("Not nil. (2) %#v\n", f3)
 	}
-	//a := New(ErrAnother)
-	//f4 := Forward(a)
-	// if f4.(*Error).Trace() != trace3 {
-	// 	t.Fatal("Wrong trace:\n", f4.(*Error).Trace())
-	// }
-	//f5 := Forward(ErrSilly)
-	// if f5.(*Error).Trace() != trace4 {
-	// 	t.Fatal("Wrong trace:\n", f5.(*Error).Trace())
-	// }
-	// f6 := Forward(ErrStr)
-	// if f6.(*Error).Trace() != trace5 {
-	// 	t.Fatal("Wrong trace:\n", f6.(*Error).Trace())
-	// }
 }
 
 func TestEqual(t *testing.T) {
@@ -256,14 +230,6 @@ func TestNil(t *testing.T) {
 	if err != nil {
 		t.Fatalf("not nil: %#v", err)
 	}
-	// err = Forward(nil)
-	// if err != nil {
-	// 	t.Fatalf("not nil: %#v", err)
-	// }
-	// err = Push(err, nil)
-	// if err != nil {
-	// 	t.Fatalf("not nil: %#v", err)
-	// }
 }
 
 func TestCopy1(t *testing.T) {
